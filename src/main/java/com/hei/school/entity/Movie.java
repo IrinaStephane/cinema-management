@@ -33,7 +33,7 @@ public class Movie {
   @Column(length = 2000)
   private String description;
 
-  @Column(name = "duration_minutes", nullable = false)
+  @Column(nullable = false)
   private Long durationMinutes;
 
   @OneToMany(mappedBy = "movie")
