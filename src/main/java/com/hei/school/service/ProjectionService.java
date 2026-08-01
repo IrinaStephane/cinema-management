@@ -4,6 +4,8 @@ import com.hei.school.dto.request.ProjectionRequestDTO;
 import com.hei.school.dto.response.ProjectionResponseDTO;
 import com.hei.school.entity.Movie;
 import com.hei.school.entity.Room;
+import com.hei.school.exception.ResourceNotFoundException;
+import com.hei.school.mapper.ProjectionMapper;
 import com.hei.school.repository.MovieRepository;
 import com.hei.school.repository.ProjectionRepository;
 import com.hei.school.repository.RoomRepository;
@@ -14,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.expression.spel.ast.Projection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import software.amazon.awssdk.services.eventbridge.model.ResourceNotFoundException;
 
 @Service
 @RequiredArgsConstructor
