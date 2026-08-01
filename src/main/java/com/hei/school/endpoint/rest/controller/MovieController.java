@@ -2,6 +2,7 @@ package com.hei.school.endpoint.rest.controller;
 
 import com.hei.school.dto.request.MovieRequestDTO;
 import com.hei.school.dto.response.MovieResponseDTO;
+import com.hei.school.entity.Genre;
 import com.hei.school.service.MovieService;
 import java.util.List;
 import java.util.UUID;
@@ -19,8 +20,9 @@ public class MovieController {
   private final MovieService movieService;
 
   @GetMapping
-  public ResponseEntity<List<MovieResponseDTO>> getAll() {
-    return ResponseEntity.ok(movieService.findAll());
+  public ResponseEntity<List<MovieResponseDTO>> getAll(
+      @RequestParam(required = false) Genre genre) {
+    return ResponseEntity.ok(movieService.findAll(genre));
   }
 
   @GetMapping("/{id}")

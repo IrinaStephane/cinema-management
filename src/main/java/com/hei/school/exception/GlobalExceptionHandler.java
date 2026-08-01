@@ -1,6 +1,5 @@
 package com.hei.school.exception;
 
-import jakarta.ws.rs.ForbiddenException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +9,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import software.amazon.awssdk.services.eventbridge.model.ResourceNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -20,8 +18,13 @@ public class GlobalExceptionHandler {
     return build(HttpStatus.NOT_FOUND, ex.getMessage());
   }
 
-  @ExceptionHandler({ForbiddenException.class, AccessDeniedException.class})
-  public ResponseEntity<Map<String, Object>> handleForbidden(RuntimeException ex) {
+  @ExceptionHandler(ForbiddenException.class)
+  public ResponseEntity<Map<String, Object>> handleForbidden(ForbiddenException ex) {
+    return build(HttpStatus.FORBIDDEN, ex.getMessage());
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
     return build(HttpStatus.FORBIDDEN, ex.getMessage());
   }
 
