@@ -9,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.expression.spel.ast.Projection;
 
 @Entity
 @Table(name = "movies")

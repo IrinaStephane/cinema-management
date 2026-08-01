@@ -1,6 +1,8 @@
 package com.hei.school.endpoint.rest.controller;
 
+import com.hei.school.dto.request.ProjectionRequestDTO;
 import com.hei.school.dto.response.ProjectionResponseDTO;
+import com.hei.school.service.ProjectionService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -16,8 +18,9 @@ public class ProjectionController {
   private final ProjectionService projectionService;
 
   @GetMapping("/projections")
-  public ResponseEntity<List<ProjectionResponseDTO>> getAll() {
-    return ResponseEntity.ok(projectionService.findAll());
+  public ResponseEntity<List<ProjectionResponseDTO>> getAll(
+      @RequestParam(required = false) UUID movieId, @RequestParam(required = false) UUID roomId) {
+    return ResponseEntity.ok(projectionService.findAll(movieId, roomId));
   }
 
   @GetMapping("/projections/{id}")

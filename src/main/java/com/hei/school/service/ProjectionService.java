@@ -3,6 +3,7 @@ package com.hei.school.service;
 import com.hei.school.dto.request.ProjectionRequestDTO;
 import com.hei.school.dto.response.ProjectionResponseDTO;
 import com.hei.school.entity.Movie;
+import com.hei.school.entity.Projection;
 import com.hei.school.entity.Room;
 import com.hei.school.exception.ResourceNotFoundException;
 import com.hei.school.mapper.ProjectionMapper;
@@ -13,12 +14,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.expression.spel.ast.Projection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ProjectionService {
 
   private final ProjectionRepository projectionRepository;
@@ -26,10 +27,18 @@ public class ProjectionService {
   private final RoomRepository roomRepository;
   private final ProjectionMapper projectionMapper;
 
-  public List<ProjectionResponseDTO> findAll() {
-    return projectionRepository.findAll().stream()
-        .map(projectionMapper::toResponseDTO)
-        .collect(Collectors.toList());
+  public List<ProjectionResponseDTO> findAll(UUID movieId, UUID roomId) {
+    List<Projection> projections;
+    if (movieId != null && roomId != null) {
+      projections = projectionRepository.findByMovieIdAndRoomId(movieId, roomId);
+    } else if (movieId != null) {
+      projections = projectionRepository.findByMovieId(movieId);
+    } else if (roomId != null) {
+      projections = projectionRepository.findByRoomId(roomId);
+    } else {
+      projections = projectionRepository.findAll();
+    }
+    return projections.stream().map(projectionMapper::toResponseDTO).collect(Collectors.toList());
   }
 
   public ProjectionResponseDTO findById(UUID id) {
@@ -55,10 +64,7 @@ public class ProjectionService {
       projection = new Projection();
     }
 
-    projection.setDatetime(dto.getDatetime());
-    projection.setSeatPrice(dto.getSeatPrice());
-    projection.setMovie(movie);
-    projection.setRoom(room);
+    projectionMapper.updateEntity(projection, dto, movie, room);
 
     return projectionMapper.toResponseDTO(projectionRepository.save(projection));
   }
