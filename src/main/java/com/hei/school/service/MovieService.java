@@ -1,5 +1,7 @@
 package com.hei.school.service;
 
+import com.hei.school.dto.request.MovieRequestDTO;
+import com.hei.school.dto.response.MovieResponseDTO;
 import com.hei.school.entity.Movie;
 import com.hei.school.repository.MovieRepository;
 import java.util.List;
@@ -7,7 +9,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
