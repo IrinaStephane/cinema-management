@@ -20,7 +20,7 @@ jobs:
 
     env:
       AWS_REGION: eu-west-3
-      
+      JWT_SECRET: change-me-change-me-change-me-32-chars-minimum
 
     steps:
       - uses: actions/checkout@v4.1.6

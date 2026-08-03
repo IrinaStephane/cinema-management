@@ -23,6 +23,11 @@ public class GlobalExceptionHandler {
     return build(HttpStatus.FORBIDDEN, ex.getMessage());
   }
 
+  @ExceptionHandler(EmailAlreadyUsedException.class)
+  public ResponseEntity<Map<String, Object>> handleEmailAlreadyUsed(EmailAlreadyUsedException ex) {
+    return build(HttpStatus.CONFLICT, ex.getMessage());
+  }
+
   @ExceptionHandler(AccessDeniedException.class)
   public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
     return build(HttpStatus.FORBIDDEN, ex.getMessage());
