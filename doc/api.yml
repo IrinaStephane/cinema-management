@@ -1,0 +1,651 @@
+openapi: 3.0.3
+info:
+  title: Cinema Management API
+  description: |
+    REST API for managing a cinema: movies, projections, user authentication
+    (JWT) and seat reservations with role-based authorization
+    (CLIENT / EMPLOYEE / MANAGER).
+
+    Public endpoints: `/ping`, `/health/**`, `/auth/**`, `GET /movies/**`, `GET /projections/**`.
+    All other endpoints require a `Bearer` token issued by `/auth/login` or `/auth/register`.
+    Note: unauthenticated or unauthorized requests are answered with **403 Forbidden**.
+  version: 1.0.0
+servers:
+  - url: https://quejyc4taraxlbfbbe2uhp5gya0cmlnv.lambda-url.eu-west-3.on.aws/
+    description: Preprod deployment (AWS Lambda URL)
+tags:
+  - name: Health
+    description: Liveness and infrastructure health checks
+  - name: Auth
+    description: Registration, login and JWT issuance
+  - name: Movies
+    description: Movie catalog management
+  - name: Projections
+    description: Movie projection (screening) management
+  - name: Reservations
+    description: Seat reservations with ownership rules
+security:
+  - bearerAuth: []
+paths:
+  /ping:
+    get:
+      tags: [Health]
+      summary: Liveness check
+      operationId: ping
+      responses:
+        "200":
+          description: Service is alive
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: pong
+  /health/db:
+    get:
+      tags: [Health]
+      summary: Database health check
+      operationId: healthDb
+      responses:
+        "200":
+          description: Database is reachable
+          content:
+            text/plain:
+              schema:
+                type: string
+        "503":
+          description: Database is not reachable
+          content:
+            text/plain:
+              schema:
+                type: string
+  /health/bucket:
+    get:
+      tags: [Health]
+      summary: S3 bucket health check
+      operationId: healthBucket
+      responses:
+        "200":
+          description: Bucket is reachable
+          content:
+            text/plain:
+              schema:
+                type: string
+        "503":
+          description: Bucket is not reachable
+          content:
+            text/plain:
+              schema:
+                type: string
+  /health/email:
+    get:
+      tags: [Health]
+      summary: Email service health check
+      operationId: healthEmail
+      responses:
+        "200":
+          description: Email service is operational
+          content:
+            text/plain:
+              schema:
+                type: string
+        "503":
+          description: Email service is not operational
+          content:
+            text/plain:
+              schema:
+                type: string
+  /health/event1:
+    get:
+      tags: [Health]
+      summary: Event bus health check (produce side)
+      operationId: healthEvent1
+      responses:
+        "200":
+          description: Event bus is operational
+          content:
+            text/plain:
+              schema:
+                type: string
+  /health/event2:
+    get:
+      tags: [Health]
+      summary: Event bus health check (consume side)
+      operationId: healthEvent2
+      responses:
+        "200":
+          description: Event bus is operational
+          content:
+            text/plain:
+              schema:
+                type: string
+  /health/event/uuids:
+    post:
+      tags: [Health]
+      summary: Publish UUIDs on the event bus
+      operationId: healthEventUuids
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                format: uuid
+      responses:
+        "200":
+          description: UUIDs published
+          content:
+            text/plain:
+              schema:
+                type: string
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      description: Creates a user with the given role and returns a JWT. The password is stored hashed (BCrypt). Returns 409 if the email is already used.
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User created, JWT returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already used
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email and password
+      description: Authenticates the user and returns a JWT. Invalid credentials are answered with 403.
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful, JWT returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /movies:
+    get:
+      tags: [Movies]
+      summary: List movies
+      description: Returns all movies, optionally filtered by genre.
+      operationId: listMovies
+      security: []
+      parameters:
+        - name: genre
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Genre"
+      responses:
+        "200":
+          description: List of movies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MovieResponse"
+    put:
+      tags: [Movies]
+      summary: Create or update a movie
+      description: Creates a new movie, or updates the movie with the given `id`. MANAGER only.
+      operationId: createOrUpdateMovie
+      parameters:
+        - name: id
+          in: query
+          required: false
+          description: Movie UUID. If absent, a new movie is created.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovieRequest"
+      responses:
+        "200":
+          description: Movie created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden for CLIENT and EMPLOYEE roles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /movies/{id}:
+    get:
+      tags: [Movies]
+      summary: Get a movie by id
+      operationId: getMovieById
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Movie found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+        "404":
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /projections:
+    get:
+      tags: [Projections]
+      summary: List projections
+      description: Returns all projections. Public.
+      operationId: listProjections
+      security: []
+      responses:
+        "200":
+          description: List of projections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectionResponse"
+  /projections/{id}:
+    get:
+      tags: [Projections]
+      summary: Get a projection by id
+      operationId: getProjectionById
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Projection found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectionResponse"
+        "404":
+          description: Projection not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /projection:
+    put:
+      tags: [Projections]
+      summary: Create or update a projection
+      description: Creates a new projection, or updates the projection with the given `id`. MANAGER only.
+      operationId: createOrUpdateProjection
+      parameters:
+        - name: id
+          in: query
+          required: false
+          description: Projection UUID. If absent, a new projection is created.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectionRequest"
+      responses:
+        "200":
+          description: Projection created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectionResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden for CLIENT and EMPLOYEE roles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Projection, movie or room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /reservations:
+    get:
+      tags: [Reservations]
+      summary: List all reservations
+      description: Returns every reservation. MANAGER and EMPLOYEE only (CLIENT gets 403).
+      operationId: listReservations
+      responses:
+        "200":
+          description: List of reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReservationResponse"
+        "403":
+          description: Forbidden for CLIENT role or unauthenticated request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /reservationById/{id}:
+    get:
+      tags: [Reservations]
+      summary: Get a reservation by id
+      description: |
+        Returns 200 if the caller is the reservation owner (CLIENT) or a staff member
+        (MANAGER / EMPLOYEE). Returns 403 for another CLIENT, 404 if the reservation
+        does not exist.
+      operationId: getReservationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Reservation found and caller is authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationResponse"
+        "403":
+          description: Forbidden - not the owner and not staff
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Reservation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /reservation:
+    put:
+      tags: [Reservations]
+      summary: Create or update a reservation
+      description: |
+        Creates a reservation for the authenticated staff member, or updates the
+        reservation with the given `id`. MANAGER and EMPLOYEE only (CLIENT gets 403).
+      operationId: createOrUpdateReservation
+      parameters:
+        - name: id
+          in: query
+          required: false
+          description: Reservation UUID. If absent, a new reservation is created.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservationRequest"
+      responses:
+        "200":
+          description: Reservation created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden for CLIENT role
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Projection or seat not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT returned by /auth/register or /auth/login
+  schemas:
+    Genre:
+      type: string
+      enum: [THRILLER, ROMANCE, COMEDY, DRAMA, ACTION, SCI_FI, FANTASY, ANIMATION]
+    UserRole:
+      type: string
+      enum: [CLIENT, EMPLOYEE, MANAGER]
+    RegisterRequest:
+      type: object
+      required: [firstName, lastName, birthdate, email, password, role]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        birthdate:
+          type: string
+          format: date
+          example: "2000-01-01"
+        email:
+          type: string
+          format: email
+          example: john@test.com
+        password:
+          type: string
+          format: password
+          minLength: 1
+        phone:
+          type: string
+        role:
+          $ref: "#/components/schemas/UserRole"
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: 'JWT to send as Authorization: Bearer <token>'
+    MovieRequest:
+      type: object
+      required: [title, genre, durationMinutes]
+      properties:
+        title:
+          type: string
+        genre:
+          $ref: "#/components/schemas/Genre"
+        description:
+          type: string
+        durationMinutes:
+          type: integer
+          format: int64
+          minimum: 1
+    MovieResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        genre:
+          $ref: "#/components/schemas/Genre"
+        description:
+          type: string
+        durationMinutes:
+          type: integer
+          format: int64
+    ProjectionRequest:
+      type: object
+      required: [datetime, seatPrice, movieId, roomId]
+      properties:
+        datetime:
+          type: string
+          format: date-time
+          example: "2026-08-01T20:00:00Z"
+        seatPrice:
+          type: number
+          format: double
+          minimum: 0
+          exclusiveMinimum: true
+        movieId:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+    ProjectionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        datetime:
+          type: string
+          format: date-time
+        seatPrice:
+          type: number
+          format: double
+        movieId:
+          type: string
+          format: uuid
+        movieTitle:
+          type: string
+        roomId:
+          type: string
+          format: uuid
+        roomNumber:
+          type: string
+    ReservationRequest:
+      type: object
+      required: [projectionId, seatId]
+      properties:
+        projectionId:
+          type: string
+          format: uuid
+        seatId:
+          type: string
+          format: uuid
+    ReservationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        userId:
+          type: string
+          format: uuid
+        projectionId:
+          type: string
+          format: uuid
+        seatId:
+          type: string
+          format: uuid
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
