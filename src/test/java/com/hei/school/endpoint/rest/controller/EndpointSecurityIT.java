@@ -14,11 +14,19 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 class EndpointSecurityIT {
+
+  @DynamicPropertySource
+  static void awsProperties(DynamicPropertyRegistry registry) {
+    registry.add("aws.eventBridge.bus", () -> "dummy-bus");
+    registry.add("aws.s3.bucket", () -> "dummy-bucket");
+  }
 
   @Autowired MockMvc mockMvc;
   @Autowired ObjectMapper objectMapper;

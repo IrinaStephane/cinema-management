@@ -1,0 +1,132 @@
+### ========== PUBLIC ==========
+
+### 1. Ping
+GET http://localhost:8080/ping
+
+### 2. List movies
+GET http://localhost:8080/movies
+
+### 3. List movies by genre
+GET http://localhost:8080/movies?genre=ACTION
+
+### 4. List projections
+GET http://localhost:8080/projections
+
+
+### ========== AUTH ==========
+
+### 5. Register CLIENT
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "birthdate": "2000-01-01",
+  "email": "john@test.com",
+  "password": "secret123",
+  "phone": "0340000000",
+  "role": "CLIENT"
+}
+
+> {% client.global.set("clientToken", response.body.token); %}
+
+### 6. Register MANAGER
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Ann",
+  "lastName": "Smith",
+  "birthdate": "1990-05-05",
+  "email": "ann@test.com",
+  "password": "secret123",
+  "role": "MANAGER"
+}
+
+> {% client.global.set("managerToken", response.body.token); %}
+
+### 7. Login CLIENT (expect 200)
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@test.com",
+  "password": "secret123"
+}
+
+> {% client.global.set("clientToken", response.body.token); %}
+
+### 8. Register duplicate email (expect 409)
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "birthdate": "2000-01-01",
+  "email": "john@test.com",
+  "password": "secret123",
+  "role": "CLIENT"
+}
+
+### 9. Login wrong password (expect 403)
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@test.com",
+  "password": "wrong"
+}
+
+
+### ========== RESERVATIONS (CLIENT) ==========
+
+### 10. GET /reservations as CLIENT (expect 403)
+GET http://localhost:8080/reservations
+Authorization: Bearer {{clientToken}}
+
+### 11. PUT /reservation as CLIENT (expect 403)
+PUT http://localhost:8080/reservation
+Authorization: Bearer {{clientToken}}
+Content-Type: application/json
+
+{
+  "projectionId": "00000000-0000-0000-0000-000000000000",
+  "seatId": "00000000-0000-0000-0000-000000000000"
+}
+
+### 12. GET /reservationById as CLIENT on own/nonexistent (expect 404)
+GET http://localhost:8080/reservationById/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{clientToken}}
+
+
+### ========== RESERVATIONS (STAFF) ==========
+
+### 13. PUT /reservation as MANAGER (expect 200) — replace with real IDs from GET /projections and your DB
+PUT http://localhost:8080/reservation
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{
+  "projectionId": "00000000-0000-0000-0000-000000000000",
+  "seatId": "00000000-0000-0000-0000-000000000000"
+}
+
+### 14. GET /reservations as MANAGER (expect 200)
+GET http://localhost:8080/reservations
+Authorization: Bearer {{managerToken}}
+
+### 15. PUT /reservation update with id (expect 200)
+PUT http://localhost:8080/reservation?id=00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{
+  "projectionId": "00000000-0000-0000-0000-000000000000",
+  "seatId": "00000000-0000-0000-0000-000000000000"
+}
+
+### 16. GET /reservationById as MANAGER (expect 200)
+GET http://localhost:8080/reservationById/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{managerToken}}
