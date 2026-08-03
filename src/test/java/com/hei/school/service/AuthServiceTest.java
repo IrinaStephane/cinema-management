@@ -33,7 +33,8 @@ class AuthServiceTest {
     when(userRepository.save(any()))
         .thenAnswer(invocation -> invocation.getArgument(0, User.class));
 
-    authService = new AuthService(userRepository, passwordEncoder, authenticationManager, jwtService);
+    authService =
+        new AuthService(userRepository, passwordEncoder, authenticationManager, jwtService);
   }
 
   @Test
@@ -41,7 +42,13 @@ class AuthServiceTest {
     when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
     var dto =
         new RegisterRequestDTO(
-            "John", "Doe", LocalDate.of(2000, 1, 1), "test@example.com", "password123", "0340000000", UserRole.CLIENT);
+            "John",
+            "Doe",
+            LocalDate.of(2000, 1, 1),
+            "test@example.com",
+            "password123",
+            "0340000000",
+            UserRole.CLIENT);
 
     var response = authService.register(dto);
 
@@ -53,8 +60,15 @@ class AuthServiceTest {
     when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
     var dto =
         new RegisterRequestDTO(
-            "John", "Doe", LocalDate.of(2000, 1, 1), "test@example.com", "password123", "0340000000", UserRole.CLIENT);
+            "John",
+            "Doe",
+            LocalDate.of(2000, 1, 1),
+            "test@example.com",
+            "password123",
+            "0340000000",
+            UserRole.CLIENT);
 
-    assertThatThrownBy(() -> authService.register(dto)).isInstanceOf(EmailAlreadyUsedException.class);
+    assertThatThrownBy(() -> authService.register(dto))
+        .isInstanceOf(EmailAlreadyUsedException.class);
   }
 }

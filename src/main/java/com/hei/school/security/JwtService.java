@@ -48,7 +48,9 @@ public class JwtService {
   }
 
   private Claims parseClaims(String token) {
-    return Jwts.parser().verifyWith((javax.crypto.SecretKey) signingKey).build()
+    return Jwts.parser()
+        .verifyWith((javax.crypto.SecretKey) signingKey)
+        .build()
         .parseSignedClaims(token)
         .getPayload();
   }
