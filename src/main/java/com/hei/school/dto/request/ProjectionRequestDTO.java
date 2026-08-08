@@ -1,5 +1,7 @@
 package com.hei.school.dto.request;
 
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
@@ -15,10 +17,12 @@ import lombok.NoArgsConstructor;
 public class ProjectionRequestDTO {
 
   @NotNull(message = "datetime is required")
+  @Future(message = "datetime must be in the future")
   private Instant datetime;
 
   @NotNull(message = "seatPrice is required")
   @Positive(message = "seatPrice must be positive")
+  @Digits(integer = 8, fraction = 2, message = "seatPrice must have at most 2 decimal digits")
   private BigDecimal seatPrice;
 
   @NotNull(message = "movieId is required")
