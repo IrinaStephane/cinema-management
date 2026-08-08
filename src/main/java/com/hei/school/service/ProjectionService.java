@@ -51,14 +51,14 @@ public class ProjectionService {
   public ProjectionResponseDTO createOrUpdate(UUID id, ProjectionRequestDTO dto) {
     projectionValidator.validate(dto);
     Movie movie =
-            movieRepository
-                    .findById(dto.getMovieId())
-                    .orElseThrow(
-                            () -> new ResourceNotFoundException("Movie not found: " + dto.getMovieId()));
+        movieRepository
+            .findById(dto.getMovieId())
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Movie not found: " + dto.getMovieId()));
     Room room =
-            roomRepository
-                    .findById(dto.getRoomId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Room not found: " + dto.getRoomId()));
+        roomRepository
+            .findById(dto.getRoomId())
+            .orElseThrow(() -> new ResourceNotFoundException("Room not found: " + dto.getRoomId()));
 
     Projection projection;
     if (id != null && projectionRepository.existsById(id)) {
@@ -74,7 +74,7 @@ public class ProjectionService {
 
   private Projection getProjectionOrThrow(UUID id) {
     return projectionRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Projection not found: " + id));
+        .findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Projection not found: " + id));
   }
 }

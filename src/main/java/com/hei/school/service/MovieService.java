@@ -25,7 +25,7 @@ public class MovieService {
 
   public List<MovieResponseDTO> findAll(Genre genre) {
     List<Movie> movies =
-            genre == null ? movieRepository.findAll() : movieRepository.findByGenre(genre);
+        genre == null ? movieRepository.findAll() : movieRepository.findByGenre(genre);
     return movies.stream().map(movieMapper::toResponseDTO).collect(Collectors.toList());
   }
 
@@ -48,7 +48,7 @@ public class MovieService {
 
   private Movie getMovieOrThrow(UUID id) {
     return movieRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Movie not found: " + id));
+        .findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Movie not found: " + id));
   }
 }

@@ -33,6 +33,11 @@ public class GlobalExceptionHandler {
     return build(HttpStatus.FORBIDDEN, ex.getMessage());
   }
 
+  @ExceptionHandler(ValidationException.class)
+  public ResponseEntity<Map<String, Object>> handleValidationException(ValidationException ex) {
+    return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
     return build(HttpStatus.BAD_REQUEST, "Validation failed: " + ex.getMessage());
