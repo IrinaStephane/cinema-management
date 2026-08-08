@@ -4,6 +4,7 @@ import com.hei.school.dto.request.MovieRequestDTO;
 import com.hei.school.dto.response.MovieResponseDTO;
 import com.hei.school.entity.Genre;
 import com.hei.school.service.MovieService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class MovieController {
   @PutMapping
   @PreAuthorize("hasRole('MANAGER')")
   public ResponseEntity<MovieResponseDTO> createOrUpdate(
-      @RequestParam(required = false) UUID id, @RequestBody MovieRequestDTO dto) {
+      @RequestParam(required = false) UUID id, @Valid @RequestBody MovieRequestDTO dto) {
     MovieResponseDTO result = movieService.createOrUpdate(id, dto);
     return ResponseEntity.status(HttpStatus.OK).body(result);
   }
