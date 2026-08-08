@@ -7,6 +7,7 @@ import com.hei.school.entity.Movie;
 import com.hei.school.exception.ResourceNotFoundException;
 import com.hei.school.mapper.MovieMapper;
 import com.hei.school.repository.MovieRepository;
+import com.hei.school.validator.MovieValidator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,10 +21,11 @@ public class MovieService {
 
   private final MovieRepository movieRepository;
   private final MovieMapper movieMapper;
+  private final MovieValidator movieValidator;
 
   public List<MovieResponseDTO> findAll(Genre genre) {
     List<Movie> movies =
-        genre == null ? movieRepository.findAll() : movieRepository.findByGenre(genre);
+            genre == null ? movieRepository.findAll() : movieRepository.findByGenre(genre);
     return movies.stream().map(movieMapper::toResponseDTO).collect(Collectors.toList());
   }
 
@@ -33,6 +35,7 @@ public class MovieService {
 
   @Transactional
   public MovieResponseDTO createOrUpdate(UUID id, MovieRequestDTO dto) {
+    movieValidator.validate(dto);
     Movie movie;
     if (id != null && movieRepository.existsById(id)) {
       movie = getMovieOrThrow(id);
@@ -45,7 +48,7 @@ public class MovieService {
 
   private Movie getMovieOrThrow(UUID id) {
     return movieRepository
-        .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Movie not found: " + id));
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Movie not found: " + id));
   }
 }
