@@ -17,6 +17,7 @@ import com.hei.school.mapper.ProjectionMapper;
 import com.hei.school.repository.MovieRepository;
 import com.hei.school.repository.ProjectionRepository;
 import com.hei.school.repository.RoomRepository;
+import com.hei.school.validator.ProjectionValidator;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -35,6 +36,7 @@ class ProjectionServiceTest {
   @Mock MovieRepository movieRepository;
   @Mock RoomRepository roomRepository;
   @Mock ProjectionMapper projectionMapper;
+  @Mock ProjectionValidator projectionValidator;
   @InjectMocks ProjectionService projectionService;
 
   @Test
