@@ -14,6 +14,7 @@ import com.hei.school.entity.Movie;
 import com.hei.school.exception.ResourceNotFoundException;
 import com.hei.school.mapper.MovieMapper;
 import com.hei.school.repository.MovieRepository;
+import com.hei.school.validator.MovieValidator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,6 +29,7 @@ class MovieServiceTest {
 
   @Mock MovieRepository movieRepository;
   @Mock MovieMapper movieMapper;
+  @Mock MovieValidator movieValidator;
   @InjectMocks MovieService movieService;
 
   @Test

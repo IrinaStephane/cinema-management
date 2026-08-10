@@ -7,26 +7,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hei.school.conf.FacadeIT;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-class EndpointSecurityIT {
-
-  @DynamicPropertySource
-  static void awsProperties(DynamicPropertyRegistry registry) {
-    registry.add("aws.eventBridge.bus", () -> "dummy-bus");
-    registry.add("aws.s3.bucket", () -> "dummy-bucket");
-  }
+class EndpointSecurityIT extends FacadeIT {
 
   @Autowired MockMvc mockMvc;
   @Autowired ObjectMapper objectMapper;
@@ -116,7 +107,7 @@ class EndpointSecurityIT {
     return objectMapper.writeValueAsString(
         Map.of(
             "datetime",
-            "2026-08-01T20:00:00Z",
+            "2099-08-01T20:00:00Z",
             "seatPrice",
             6000,
             "movieId",

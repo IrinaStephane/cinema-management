@@ -10,6 +10,7 @@ import com.hei.school.mapper.ProjectionMapper;
 import com.hei.school.repository.MovieRepository;
 import com.hei.school.repository.ProjectionRepository;
 import com.hei.school.repository.RoomRepository;
+import com.hei.school.validator.ProjectionValidator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ public class ProjectionService {
   private final MovieRepository movieRepository;
   private final RoomRepository roomRepository;
   private final ProjectionMapper projectionMapper;
+  private final ProjectionValidator projectionValidator;
 
   public List<ProjectionResponseDTO> findAll(UUID movieId, UUID roomId) {
     List<Projection> projections;
@@ -47,6 +49,7 @@ public class ProjectionService {
 
   @Transactional
   public ProjectionResponseDTO createOrUpdate(UUID id, ProjectionRequestDTO dto) {
+    projectionValidator.validate(dto);
     Movie movie =
         movieRepository
             .findById(dto.getMovieId())
